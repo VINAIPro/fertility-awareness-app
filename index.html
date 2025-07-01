@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flo: Period & Fertility Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF7E79;
+            --secondary: #A78BFA;
+            --accent: #2DD4BF;
+            --text: #2D3748;
+            --bg: #FFFFFF;
+            --card-bg: #F7FAFC;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        [data-theme="dark"] {
+            --primary: #FF9E99;
+            --secondary: #B99BFF;
+            --accent: #4CE4CF;
+            --text: #E2E8F0;
+            --bg: #1E1E2D;
+            --card-bg: #2D3748;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        main {
+            margin-top: 30px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-item {
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .sidebar-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-item i {
+            font-size: 20px;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .cycle-overview {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+
+        .cycle-day {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .cycle-phase {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .cycle-dates {
+            text-align: right;
+        }
+
+        .cycle-next {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .calendar {
+            width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-month {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 5px;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .calendar-day.today {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.period {
+            background-color: rgba(255, 126, 121, 0.2);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .calendar-day.fertile {
+            background-color: rgba(167, 139, 250, 0.2);
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .calendar-day.ovulation {
+            background-color: rgba(45, 212, 191, 0.2);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .day-number {
+            font-size: 14px;
+        }
+
+        .day-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-top: 2px;
+        }
+
+        .day-dot.period {
+            background-color: var(--primary);
+        }
+
+        .day-dot.fertile {
+            background-color: var(--secondary);
+        }
+
+        .day-dot.ovulation {
+            background-color: var(--accent);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .quick-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            min-height: 100px;
+        }
+
+        .quick-action i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .quick-action-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .symptom-item {
+            padding: 10px;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .symptom-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .symptom-item.selected {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .mood-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .mood-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .mood-emoji {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .mood-option.selected .mood-emoji {
+            transform: scale(1.2);
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .metric-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .metric-goal {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 3px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .insight-card {
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+        }
+
+        .insight-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .insight-text {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .insight-link {
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: var(--bg);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .severity-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .severity-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pregnancy-week {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .week-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .week-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .week-image {
+            width: 150px;
+            height: 150px;
+            background-color: var(--card-bg);
+            border-radius: 50%;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: var(--primary);
+        }
+
+        .week-description {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .week-nav {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .kick-counter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .kick-count {
+            font-size: 48px;
+            font-weight: 600;
+            margin: 20px 0;
+            color: var(--primary);
+        }
+
+        .kick-button {
+            padding: 15px 40px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .kick-timer {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .kick-info {
+            font-size: 14px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .health-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-buttons {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>Flo</span>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn btn-outline">
+                    <i class="fas fa-user"></i>
+                    Sign In
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Sign Up
+                </button>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="cycle-overview">
+                <div class="cycle-info">
+                    <div class="cycle-day">Day 14</div>
+                    <div class="cycle-phase">Fertile Window</div>
+                </div>
+                <div class="cycle-dates">
+                    <div>Ovulation: Today</div>
+                    <div class="cycle-next">Next period: June 28</div>
+                </div>
+            </div>
+
+            <div class="dashboard">
+                <div class="sidebar">
+                    <div class="sidebar-item active">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Period Tracker</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-baby"></i>
+                        <span>Fertility Tracker</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-heart"></i>
+                        <span>Pregnancy Mode</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-notes-medical"></i>
+                        <span>Symptom Tracker</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Health Insights</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-book"></i>
+                        <span>Education</span>
+                    </div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Your Cycle</div>
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="fas fa-plus"></i>
+                                Log Period
+                            </button>
+                        </div>
+                        <div class="calendar">
+                            <div class="calendar-header">
+                                <div class="calendar-month">June 2023</div>
+                                <div class="calendar-nav">
+                                    <button class="calendar-nav-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button class="calendar-nav-btn">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="calendar-day-header">Sun</div>
+                                <div class="calendar-day-header">Mon</div>
+                                <div class="calendar-day-header">Tue</div>
+                                <div class="calendar-day-header">Wed</div>
+                                <div class="calendar-day-header">Thu</div>
+                                <div class="calendar-day-header">Fri</div>
+                                <div class="calendar-day-header">Sat</div>
+                                
+                                <!-- Calendar days will be generated by JavaScript -->
+                                <template id="calendarDayTemplate">
+                                    <div class="calendar-day">
+                                        <div class="day-number">1</div>
+                                        <div class="day-dot"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Quick Actions</div>
+                        </div>
+                        <div class="quick-actions">
+                            <div class="quick-action" id="logSymptoms">
+                                <i class="fas fa-notes-medical"></i>
+                                <div class="quick-action-title">Log Symptoms</div>
+                            </div>
+                            <div class="quick-action" id="logMood">
+                                <i class="fas fa-smile"></i>
+                                <div class="quick-action-title">Log Mood</div>
+                            </div>
+                            <div class="quick-action" id="logFlow">
+                                <i class="fas fa-tint"></i>
+                                <div class="quick-action-title">Log Flow</div>
+                            </div>
+                            <div class="quick-action" id="logTemperature">
+                                <i class="fas fa-thermometer-half"></i>
+                                <div class="quick-action-title">Log Temperature</div>
+                            </div>
+                            <div class="quick-action" id="logIntercourse">
+                                <i class="fas fa-heart"></i>
+                                <div class="quick-action-title">Log Intercourse</div>
+                            </div>
+                            <div class="quick-action" id="logWater">
+                                <i class="fas fa-tint"></i>
+                                <div class="quick-action-title">Log Water</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Health Metrics</div>
+                        </div>
+                        <div class="health-metrics">
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <div class="metric-title">Water Intake</div>
+                                    <i class="fas fa-tint"></i>
+                                </div>
+                                <div class="metric-value">5/8</div>
+                                <div class="metric-goal">cups today</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 62.5%;"></div>
+                                </div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <div class="metric-title">Sleep</div>
+                                    <i class="fas fa-moon"></i>
+                                </div>
+                                <div class="metric-value">6.5/8</div>
+                                <div class="metric-goal">hours last night</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 81.25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Health Insights</div>
+                        </div>
+                        <div class="insights-grid">
+                            <div class="insight-card">
+                                <div class="insight-title">Cycle Regularity</div>
+                                <div class="insight-text">Your cycles have been 28-30 days long for the past 3 months.</div>
+                                <a href="#" class="insight-link">
+                                    <span>View Details</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                            <div class="insight-card">
+                                <div class="insight-title">Symptom Patterns</div>
+                                <div class="insight-text">You typically experience headaches 2 days before your period starts.</div>
+                                <a href="#" class="insight-link">
+                                    <span>View Details</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="symptomsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Symptoms</div>
+                <button class="modal-close" id="closeSymptomsModal">&times;</button>
+            </div>
+            <div class="tab-bar">
+                <div class="tab active" data-tab="common">Common</div>
+                <div class="tab" data-tab="custom">Custom</div>
+            </div>
+            <div class="tab-content active" id="commonTab">
+                <div class="symptoms-grid">
+                    <div class="symptom-item" data-symptom="headache">
+                        <i class="fas fa-head-side-virus"></i>
+                        <span>Headache</span>
+                    </div>
+                    <div class="symptom-item" data-symptom="cramps">
+                        <i class="fas fa-stomach"></i>
+                        <span>Cramps</span>
+                    </div>
+                    <div class="symptom-item" data-symptom="bloating">
+                        <i class="fas fa-weight"></i>
+                        <span>Bloating</span>
+                    </div>
+                    <div class="symptom-item" data-symptom="acne">
+                        <i class="fas fa-allergies"></i>
+                        <span>Acne</span>
+                    </div>
+                    <div class="symptom-item" data-symptom="fatigue">
+                        <i class="fas fa-bed"></i>
+                        <span>Fatigue</span>
+                    </div>
+                    <div class="symptom-item" data-symptom="nausea">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Nausea</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Severity</label>
+                    <input type="range" class="severity-slider" min="1" max="5" value="3">
+                    <div class="severity-labels">
+                        <span>Mild</span>
+                        <span>Moderate</span>
+                        <span>Severe</span>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="cancelSymptoms">Cancel</button>
+                    <button class="btn btn-primary" id="saveSymptoms">Save</button>
+                </div>
+            </div>
+            <div class="tab-content" id="customTab">
+                <div class="form-group">
+                    <label class="form-label">Symptom Name</label>
+                    <input type="text" class="form-input" placeholder="e.g., Back pain">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Severity</label>
+                    <input type="range" class="severity-slider" min="1" max="5" value="3">
+                    <div class="severity-labels">
+                        <span>Mild</span>
+                        <span>Moderate</span>
+                        <span>Severe</span>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="cancelCustomSymptom">Cancel</button>
+                    <button class="btn btn-primary" id="saveCustomSymptom">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="moodModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Mood</div>
+                <button class="modal-close" id="closeMoodModal">&times;</button>
+            </div>
+            <div class="mood-tracker">
+                <div class="mood-option" data-mood="1">
+                    <div class="mood-emoji">😭</div>
+                    <span>Awful</span>
+                </div>
+                <div class="mood-option" data-mood="2">
+                    <div class="mood-emoji">😞</div>
+                    <span>Sad</span>
+                </div>
+                <div class="mood-option selected" data-mood="3">
+                    <div class="mood-emoji">😐</div>
+                    <span>Neutral</span>
+                </div>
+                <div class="mood-option" data-mood="4">
+                    <div class="mood-emoji">😊</div>
+                    <span>Happy</span>
+                </div>
+                <div class="mood-option" data-mood="5">
+                    <div class="mood-emoji">😁</div>
+                    <span>Great</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea class="form-input" rows="3" placeholder="How are you feeling today?"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="cancelMood">Cancel</button>
+                <button class="btn btn-primary" id="saveMood">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="flowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Flow</div>
+                <button class="modal-close" id="closeFlowModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Flow Intensity</label>
+                <select class="form-select">
+                    <option value="none">No Flow</option>
+                    <option value="light">Light</option>
+                    <option value="medium">Medium</option>
+                    <option value="heavy">Heavy</option>
+                    <option value="very-heavy">Very Heavy</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <select class="form-select">
+                    <option value="bright-red">Bright Red</option>
+                    <option value="dark-red">Dark Red</option>
+                    <option value="brown">Brown</option>
+                    <option value="pink">Pink</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea class="form-input" rows="3" placeholder="Any additional notes"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="cancelFlow">Cancel</button>
+                <button class="btn btn-primary" id="saveFlow">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="temperatureModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Temperature</div>
+                <button class="modal-close" id="closeTemperatureModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Temperature (°F)</label>
+                <input type="number" class="form-input" step="0.1" placeholder="97.8">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time</label>
+                <input type="time" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea class="form-input" rows="3" placeholder="Any additional notes"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="cancelTemperature">Cancel</button>
+                <button class="btn btn-primary" id="saveTemperature">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="intercourseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Intercourse</div>
+                <button class="modal-close" id="closeIntercourseModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date & Time</label>
+                <input type="datetime-local" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Protection Used</label>
+                <select class="form-select">
+                    <option value="none">None</option>
+                    <option value="condom">Condom</option>
+                    <option value="pill">Birth Control Pill</option>
+                    <option value="iud">IUD</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea class="form-input" rows="3" placeholder="Any additional notes"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="cancelIntercourse">Cancel</button>
+                <button class="btn btn-primary" id="saveIntercourse">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="waterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Log Water Intake</div>
+                <button class="modal-close" id="closeWaterModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount (cups)</label>
+                <input type="number" class="form-input" min="1" max="20" value="1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time</label>
+                <input type="time" class="form-input">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" id="cancelWater">Cancel</button>
+                <button class="btn btn-primary" id="saveWater">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="pregnancyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Pregnancy Mode</div>
+                <button class="modal-close" id="closePregnancyModal">&times;</button>
+            </div>
+            <div class="tab-bar">
+                <div class="tab active" data-tab="progress">Weekly Progress</div>
+                <div class="tab" data-tab="kick">Kick Counter</div>
+                <div class="tab" data-tab="symptoms">Symptoms</div>
+            </div>
+            <div class="tab-content active" id="progressTab">
+                <div class="pregnancy-week">
+                    <div class="week-title">Week 14</div>
+                    <div class="week-subtitle">Baby is the size of a lemon!</div>
+                    <div class="week-image">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <div class="week-description">
+                        Your baby's facial muscles are getting a workout as they squint, frown, and grimace. 
+                        The kidneys are producing urine, which they release into the amniotic fluid.
+                    </div>
+                    <div class="week-nav">
+                        <button class="btn btn-outline">
+                            <i class="fas fa-chevron-left"></i>
+                            Previous Week
+                        </button>
+                        <button class="btn btn-outline">
+                            Next Week
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="kickTab">
+                <div class="kick-counter">
+                    <div class="kick-timer">00:00:00</div>
+                    <div class="kick-count">0</div>
+                    <button class="kick-button">KICK!</button>
+                    <div class="kick-info">
+                        Count your baby's movements for one hour. 
+                        You should feel at least 10 movements in this time.
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-outline" id="resetKicks">Reset</button>
+                        <button class="btn btn-primary" id="saveKicks">Save</button>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="pregnancySymptomsTab">
+                <div class="form-group">
+                    <label class="form-label">Symptom</label>
+                    <select class="form-select">
+                        <option value="nausea">Nausea</option>
+                        <option value="fatigue">Fatigue</option>
+                        <option value="back-pain">Back Pain</option>
+                        <option value="swelling">Swelling</option>
+                        <option value="cravings">Cravings</option>
+                        <option value="heartburn">Heartburn</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Severity</label>
+                    <input type="range" class="severity-slider" min="1" max="5" value="3">
+                    <div class="severity-labels">
+                        <span>Mild</span>
+                        <span>Moderate</span>
+                        <span>Severe</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea class="form-input" rows="3" placeholder="Describe your symptom"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="cancelPregnancySymptom">Cancel</button>
+                    <button class="btn btn-primary" id="savePregnancySymptom">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        themeToggle.addEventListener('click', () => {
+            body.setAttribute('data-theme', 
+                body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            
+            themeToggle.innerHTML = body.getAttribute('data-theme') === 'dark' 
+                ? '<i class="fas fa-sun"></i>' 
+                : '<i class="fas fa-moon"></i>';
+        });
+
+        // Initialize theme
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            body.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        // Modal Handling
+        function setupModal(openButtonId, modalId, closeButtonId) {
+            const openButton = document.getElementById(openButtonId);
+            const modal = document.getElementById(modalId);
+            const closeButton = document.getElementById(closeButtonId);
+            
+            if (openButton) {
+                openButton.addEventListener('click', () => {
+                    modal.classList.add('active');
+                });
+            }
+            
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+            }
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        }
+
+        // Setup all modals
+        setupModal('logSymptoms', 'symptomsModal', 'closeSymptomsModal');
+        setupModal('logMood', 'moodModal', 'closeMoodModal');
+        setupModal('logFlow', 'flowModal', 'closeFlowModal');
+        setupModal('logTemperature', 'temperatureModal', 'closeTemperatureModal');
+        setupModal('logIntercourse', 'intercourseModal', 'closeIntercourseModal');
+        setupModal('logWater', 'waterModal', 'closeWaterModal');
+        
+        // Special case for pregnancy mode (would be opened from sidebar in real app)
+        document.querySelector('.sidebar-item:nth-child(4)').addEventListener('click', () => {
+            document.getElementById('pregnancyModal').classList.add('active');
+        });
+        setupModal('', 'pregnancyModal', 'closePregnancyModal');
+
+        // Tab Handling
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                const tabContainer = tab.closest('.modal-content') || document;
+                
+                // Update active tab
+                tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                tabContainer.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                tabContainer.querySelector(`#${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // Symptom Selection
+        document.querySelectorAll('.symptom-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.symptom-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
+
+        // Mood Selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.mood-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        // Calendar Generation
+        function generateCalendar() {
+            const calendarGrid = document.querySelector('.calendar-grid');
+            const template = document.getElementById('calendarDayTemplate');
+            
+            // Clear existing days (except headers)
+            while (calendarGrid.children.length > 7) {
+                calendarGrid.removeChild(calendarGrid.lastChild);
+            }
+            
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            
+            document.querySelector('.calendar-month').textContent = 
+                new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Add empty cells for days before the first of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                calendarGrid.appendChild(emptyDay);
+            }
+            
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = template.content.cloneNode(true);
+                const dayDiv = dayElement.querySelector('.calendar-day');
+                const dayNumber = dayElement.querySelector('.day-number');
+                const dayDot = dayElement.querySelector('.day-dot');
+                
+                dayNumber.textContent = day;
+                
+                // Mark today
+                if (day === date.getDate() && month === date.getMonth() && year === date.getFullYear()) {
+                    dayDiv.classList.add('today');
+                }
+                
+                // Simulate period, fertile, and ovulation days (in a real app, this would come from user data)
+                if (day >= 5 && day <= 9) {
+                    dayDiv.classList.add('period');
+                    dayDot.classList.add('period');
+                } else if (day >= 12 && day <= 16) {
+                    dayDiv.classList.add('fertile');
+                    dayDot.classList.add('fertile');
+                } else if (day === 14) {
+                    dayDiv.classList.add('ovulation');
+                    dayDot.classList.add('ovulation');
+                }
+                
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // Initialize calendar
+        generateCalendar();
+
+        // Calendar Navigation
+        document.querySelectorAll('.calendar-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // In a real app, this would change the month and regenerate the calendar
+                // For this demo, we'll just regenerate the current month
+                generateCalendar();
+            });
+        });
+
+        // Kick Counter
+        let kickCount = 0;
+        let kickTimer;
+        let seconds = 0;
+        
+        document.querySelector('.kick-button').addEventListener('click', () => {
+            kickCount++;
+            document.querySelector('.kick-count').textContent = kickCount;
+            
+            if (!kickTimer) {
+                startTimer();
+            }
+        });
+        
+        function startTimer() {
+            kickTimer = setInterval(() => {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                
+                document.querySelector('.kick-timer').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        document.getElementById('resetKicks').addEventListener('click', () => {
+            kickCount = 0;
+            seconds = 0;
+            clearInterval(kickTimer);
+            kickTimer = null;
+            document.querySelector('.kick-count').textContent = kickCount;
+            document.querySelector('.kick-timer').textContent = '00:00:00';
+        });
+        
+        document.getElementById('saveKicks').addEventListener('click', () => {
+            alert(`Saved ${kickCount} kicks over ${document.querySelector('.kick-timer').textContent}`);
+            // In a real app, this would save to a database
+        });
+
+        // Form Submissions (simulated)
+        document.getElementById('saveSymptoms').addEventListener('click', () => {
+            const selectedSymptom = document.querySelector('.symptom-item.selected');
+            const symptomName = selectedSymptom ? selectedSymptom.getAttribute('data-symptom') : 'Custom';
+            const severity = document.querySelector('.severity-slider').value;
+            alert(`Logged ${symptomName} symptom with severity ${severity}`);
+            document.getElementById('symptomsModal').classList.remove('active');
+        });
+
+        document.getElementById('saveCustomSymptom').addEventListener('click', () => {
+            const symptomName = document.querySelector('#customTab .form-input').value;
+            const severity = document.querySelector('#customTab .severity-slider').value;
+            if (symptomName) {
+                alert(`Logged custom symptom "${symptomName}" with severity ${severity}`);
+                document.getElementById('symptomsModal').classList.remove('active');
+            }
+        });
+
+        document.getElementById('saveMood').addEventListener('click', () => {
+            const selectedMood = document.querySelector('.mood-option.selected');
+            const moodValue = selectedMood.getAttribute('data-mood');
+            const notes = document.querySelector('#moodModal textarea').value;
+            alert(`Logged mood ${moodValue} with notes: ${notes || 'None'}`);
+            document.getElementById('moodModal').classList.remove('active');
+        });
+
+        // Similar save handlers for other modals would be implemented
+    </script>
+</body>
+</html>
